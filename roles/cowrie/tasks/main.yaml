@@ -1,0 +1,98 @@
+#- debug: var=hostvars[inventory_hostname]
+#  tags: debug
+
+- name: Apt-get update 
+  apt: update_cache=yes 
+  tags: update
+
+- name: Install list of packages
+  tags: [packages,update]
+  apt: name="{{item}}" state=latest install_recommends=yes
+  with_items:
+       - git-core
+       - libmysqlclient-dev
+       - libffi-dev
+       - libssl-dev
+       - libxml2-dev
+       - libxslt1-dev
+       - openssl
+       - python-pip
+       - python-dev
+       - build-essential
+
+- name: PIP Install Packages
+  tags: [packages,update]
+  pip: name="{{ item }}" state=latest
+  with_items: 
+        - virtualenv 
+        - scrapy
+
+- name: Create Cowrie User
+  tags: user
+  user: name="{{ cowrie_user }}" home="{{ cowrie_home }}"
+
+- name: Git clone Cowrie repo
+  tags: [git,update]
+  become: yes 
+  become_user: "{{ cowrie_user }}"
+  git: repo="{{ cowrie_repo }}" dest="{{ cowrie_home }}/cowrie" force=yes
+
+- name: Download DoneHackMe API output 
+  tags: [git,update]
+  get_url: url="{{ donthackme_output }}" dest="{{ cowrie_home }}/cowrie/cowrie/output" mode=0644 owner="{{ cowrie_user }}"
+
+- name: Install cowrie config file
+  tags: [cfg,update]
+  become: yes
+  become_user: "{{ cowrie_user }}"
+  template: src=cowrie.cfg.j2 dest="{{ cowrie_src_dir }}/cowrie.cfg"
+
+- name: Installing VirtualEnv PIP python packages
+  tags: [virtpackages,update]
+  become: yes
+  become_user: "{{ cowrie_user }}"
+  pip: virtualenv="{{ cowrie_venv }}" name="{{ item }}"
+  with_items:
+    - twisted
+    - pycrypto
+    - pyasn1
+    - pyopenssl
+    - zope.interface
+    - service_identity
+    - requests
+    - python_dateutil
+    - pyes
+    - pymongo
+    - pymysql
+    - mysql-python
+    - wokkel
+
+- name: Install init.d script cowrie
+  tags: initd
+  template: src=cowrie.service dest=/etc/init.d/cowrie
+
+- name: Make /etc/init.d/cowrie executable
+  tags: initd
+  file: path=/etc/init.d/cowrie mode=0755
+
+- name: Start cowrie
+  tags: [git,cfg,update]
+  service: name=cowrie state=restarted 
+
+- name: Start cowrie on boot
+  service: name=cowrie enabled=yes
+
+- name: Create crontab for cowrie to delete logs under 1024k
+  cron: name="check dirs" minute="0" hour="5,2" job="ls -alh > /dev/null"
+
+- name: Alias cowrie log file wirh LOG = tail -f /opt/cowrie/cowrie/log/cowrie.log
+  tags: aliasL
+  lineinfile: dest=/home/{{ user }}/.bashrc line="alias LOG='sudo tail -f "{{ cowrie_src_dir }}/log/cowrie.log"'" insertafter=EOF
+
+- name: Alias COWRIE to sudo su - cowrie 
+  tags: aliasC
+  lineinfile: dest=/home/{{ user }}/.bashrc line="alias COWRIE='sudo su - cowrie'" insertafter=EOF
+
+- name: Alias 22REDIRECT = iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-ports 2222
+  tags: alias22
+  lineinfile: dest=/home/{{ user }}/.bashrc line="alias 22REDIRECT='sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-ports 2222'" insertafter=EOF

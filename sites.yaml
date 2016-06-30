@@ -1,0 +1,9 @@
+- hosts: $HOST
+  user: $USER
+  become: yes
+  become_method: sudo
+  vars:
+   #SSH User
+   user: $USER
+  roles:
+   - cowrie

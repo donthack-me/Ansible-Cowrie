@@ -1,0 +1,82 @@
+# Cowrie User Settings
+  cowrie_user: cowrie
+  cowrie_home: /opt/cowrie
+  cowrie_repo: https://github.com/micheloosterhof/cowrie
+  cowrie_src_dir: "{{ cowrie_home }}/cowrie"
+  cowrie_venv: "{{ cowrie_src_dir }}/env"
+
+# Donehack.me API 
+  donthackme_output: https://raw.githubusercontent.com/donthack-me/donthackme_output/master/donthackme_output/donthackme.py
+  donthackme_endpoint: https://api.donthack.me
+  donthackme_token: $TOKEN 
+
+# General cowrie config options
+  cowrie_port: 2222
+  cowrie_report_public_ip: true
+  cowrie_hostname: bastion-03
+  cowrie_log_path: log
+  cowrie_download_path: dl
+  cowrie_contents_path: honeyfs
+  cowrie_filesystem_file: data/fs.pickle
+  cowrie_data_path: data
+  # Set 'UserDB' for matching and 'AuthRandom' for random
+  cowrie_auth_class: AuthRandom
+  # Comment out if using UserDB, This is min, max, cache amount for auth random attempts 
+  cowrie_auth_class_parameters: 1, 2, 10
+  cowrie_auth_none_enabled: false
+  cowrie_txtcmds_path: txtcmds
+  cowrie_rsa_public_key: "{{ cowrie_data_path }}/ssh_host_rsa_key.pub"
+  cowrie_rsa_private_key: "{{ cowrie_data_path }}/ssh_host_rsa_key"
+  cowrie_dsa_public_key: "{{ cowrie_data_path }}/ssh_host_dsa_key.pub"
+  cowrie_dsa_private_key: "{{ cowrie_data_path }}/ssh_host_dsa_key"
+  cowrie_sftp_enabled: true
+  cowrie_ssh_version_string: "SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2"
+  cowrie_interact_enabled: false
+  cowrie_interact_port: 5123
+
+## Define data logging engine: MySQL, Mongo, Elastic Search 
+## Uncomment the sections below you would like to use as a data source, multiple can be used at once
+  
+  # MySQL settings
+  #mysql_host: $MYSQL_IP
+  #mysql_port: $MYSQL_PORT
+  #mysql_database: $MYSQL_DB
+  #mysql_username: $MYSQL_USER
+  #mysql_password: $MYSQL_PASS
+
+  # ElasticSearch settings
+  #es_host: $ES_IP
+  #es_port: $ES_PORT
+  #es_index: $ES_INDEX
+  #es_type: $ES_TYPE 
+
+  # Virus Total API api_key
+  #vt_api_key: $VT_API_KEY
+
+
+## Uncomment the same sections below as above for the data logging engine you choose
+  cowrie_settings:
+
+    output_donthackme:
+      endpoint: "{{ donthackme_endpoint }}"
+      token: "{{ donthackme_token }}"
+
+    output_jsonlog:
+      logfile: log/cowrie.json
+
+#    output_mysql:
+#      host: "{{ mysql_host }}"
+#      port: "{{ mysql_port }}"
+#      database: "{{ mysql_database }}"
+#      username: "{{ mysql_username }}"
+#      password: "{{ mysql_password }}"
+
+
+#    output_elasticsearch:
+#       host: "{{ es_host }}"
+#       port: "{{ es_port }}"
+#       index: "{{ es_index }}"
+#       type: "{{ es_type }}" 
+    
+#    output_virustotal:
+#      api_key: "{{ vt_api_key }}"
